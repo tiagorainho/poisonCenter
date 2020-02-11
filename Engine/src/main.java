@@ -1,35 +1,54 @@
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataValidation;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.hssf.usermodel.DVConstraint;
+import org.apache.poi.hssf.usermodel.HSSFDataValidation;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 public class main {
 
 	private static final String casListFile = "../auxiliar/casList.xlsx";
 	private static final String listaFile = "../auxiliar/lista.xlsx";
 	private static final boolean hasHeader = true;
+	private static final String outputPath = "../Output";
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {		
 		
 		try {
 			processInputChemges();
-			Output.print("Done!");
+			Output.print("Processo concluído com sucesso !", true);
 		}
 		catch(Exception e) {
-			Output.print("Erro!");
+			Output.print(e.getMessage());
 		}
 		
+		try {
+			Desktop.getDesktop().open(new File(outputPath));
+		} catch (Exception e) {
+			Output.print("Erro a abrir o diretório com os ficheiros finais");
+		}
+		
+		System.exit(0);
 	}
 	
 	public static void processInputChemges() {
@@ -127,5 +146,6 @@ public class main {
 		excel = new ExcelManagement(ExcelManagement.updateCasList(cas, products, "casList"));
 		excel.save(casListFile);
 		
-	}	
+	}
+	
 }

@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
@@ -11,18 +12,25 @@ import java.util.List;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import javax.swing.JFileChooser;
-
 
 public class ExcelManagement {
 	private Workbook workbook;
+	private static String listaName = "lista";
+	private static int startListaIndex = 2;
+	private static int endListaIndex = 30;
 	
 	public ExcelManagement(Workbook workbook) {
 		this.workbook = workbook;
@@ -209,8 +217,11 @@ public class ExcelManagement {
 			}
 		}
 		
+		// add lista
+		Sheet listaSheet = wb.createSheet(listaName);
+		PoiCopySheet.copySheets(listaSheet, lista);
 		
-		// populate markers and field cells
+		// preparing to populate markers and field cells
 		List<Cell> markers = new LinkedList<Cell>();
 		markers.add(rows.get(0).createCell(0));
 		markers.add(rows.get(4).createCell(0));
@@ -262,7 +273,7 @@ public class ExcelManagement {
 		rows.get(8).createCell(0).setCellValue("pH:");
 		rows.get(9).createCell(0).setCellValue("Apresentação:");
 		rows.get(14).createCell(0).setCellValue("Tipo");
-		rows.get(15).createCell(0).setCellValue("Tamanho:");
+		rows.get(16).createCell(0).setCellValue("Tamanho:");
 		rows.get(19).createCell(0).setCellValue(fields[0]);
 		rows.get(20).createCell(0).setCellValue(fields[1]);
 		rows.get(21).createCell(0).setCellValue(fields[2]);
@@ -275,7 +286,6 @@ public class ExcelManagement {
 		rows.get(30).createCell(0).setCellStyle(warning);
 
 		// populate autocompletes
-		rows.get(2).createCell(1).setCellValue("Nova");
 		cell = rows.get(19).createCell(1);
 		cell.setCellValue(company.getName());
 		cell.setCellStyle(underline);
@@ -289,6 +299,16 @@ public class ExcelManagement {
 		rows.get(27).createCell(1).setCellValue(company.getEmail());
 		rows.get(33).createCell(0).setCellValue(product.getReference());
 		
+		// populate lists
+		addListConnection(wb, rows.get(2).createCell(1), "Ficha", listaName, "A", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(5).createCell(1), "UsoRecomendado", listaName, "B", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(6).createCell(1), "Utilizador", listaName, "D", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(7).createCell(1), "Cor", listaName, "F", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(8).createCell(1), "pH", listaName, "C", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(9).createCell(1), "Apresentacao", listaName, "E", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(14).createCell(1), "TipoEmbalagem1", listaName, "G", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(15).createCell(1), "TipoEmbalagem2", listaName, "G", startListaIndex, endListaIndex);
+		addListConnection(wb, rows.get(16).createCell(1), "Tamanho", listaName, "H", startListaIndex, endListaIndex);
 		
 		// populate table header (7 option)
 		String[] tableHeaderTitles = {"Designação", "Nº CAS", "%"};
@@ -332,6 +352,7 @@ public class ExcelManagement {
 			
 			// preparing percentage
 			rows.get(i+2).createCell(5).setCellValue(ingredients.get(i).getPercent());
+			
 		}
 		
 		// fit company info
@@ -378,9 +399,25 @@ public class ExcelManagement {
 		rows.get(height + 4).createCell(0).setCellValue("Data de atualização:");
 		rows.get(height + 4).createCell(1).setCellValue(formatter.format(date));
 		
-		// add lista
-		Sheet listaSheet = wb.createSheet("lista");
-		PoiCopySheet.copySheets(listaSheet, lista);
+		// populate cell with percentage sum
+		Double sum = (double) 0;
+		
+		for(int i = 0;i < ingredients.size(); i++) {
+			try {
+				sum += Double.parseDouble(ingredients.get(i).getPercent().replace(",", "."));
+			}
+			catch(Exception e) {
+				rows.get(i + startingPoint + 2).getCell(5).setCellStyle(warning);
+			}
+		}
+		
+		DecimalFormat decimalFormat = new DecimalFormat("#.0000");
+		cell = rows.get(height + 4).createCell(5);
+		cell.setCellValue(String.valueOf(decimalFormat.format(sum)).replace(".", ","));		
+		
+		if(!String.format("%.4f", sum).equals("100,0000")) {
+			cell.setCellStyle(warning);
+		}
 		
 		// preparing border style specs
 		BorderStyle borderStyle = BorderStyle.THICK;
@@ -442,7 +479,6 @@ public class ExcelManagement {
 			cell.setCellStyle(newStyleLeft);
 		}
 		
-		
 		// listing header rows
 		List<Row> headerRows = new LinkedList<Row>();
 		Row row;
@@ -495,7 +531,24 @@ public class ExcelManagement {
 			style.setTopBorderColor(borderColor);
 			cell.setCellStyle(style);
 		}
-         
+		
 		return wb;
-	}	
+	}
+	
+	private static Workbook addListConnection(Workbook workbook, Cell cell, String name, String sheetName, String column, int start, int end) {
+		 Name namedCell = workbook.createName();
+		 namedCell.setNameName(name);
+		 namedCell.setRefersToFormula(sheetName + "!$" + column.toUpperCase() + "$" + start + ":$" + column.toUpperCase() + "$" + end);
+		 Sheet sheet = cell.getSheet();
+		 
+		 int y = cell.getRow().getRowNum();
+		 int x = cell.getColumnIndex();
+		 DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+		 DataValidationConstraint dvConstraint = dvHelper.createFormulaListConstraint(name);
+		 CellRangeAddressList addressList = new CellRangeAddressList(y, y, x, x);
+		 DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
+		 sheet.addValidationData(validation);
+
+		 return workbook;
+	}
 }
