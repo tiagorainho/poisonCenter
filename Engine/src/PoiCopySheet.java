@@ -21,7 +21,6 @@ public class PoiCopySheet {
         for (InputStream fin: inList) {
             Workbook b = WorkbookFactory.create(fin);
             for (int i = 0; i < b.getNumberOfSheets(); i++) {
-                // not entering sheet name, because of duplicated names
                 copySheets(book.createSheet(), b.getSheetAt(i));
             }
         }
@@ -51,29 +50,21 @@ public class PoiCopySheet {
     }
 
     public static void copyRow(Sheet srcSheet, Sheet destSheet, Row srcRow, Row destRow, Map < Integer, CellStyle > styleMap) {
-        // manage a list of merged zone in order to not insert two times a merged zone  
         Set < CellRangeAddressWrapper > mergedRegions = new TreeSet < CellRangeAddressWrapper > ();
         destRow.setHeight(srcRow.getHeight());
-        // reckoning delta rows  
         int deltaRows = destRow.getRowNum() - srcRow.getRowNum();
-        // pour chaque row  
         for (int j = srcRow.getFirstCellNum(); j <= srcRow.getLastCellNum(); j++) {
-            Cell oldCell = srcRow.getCell(j); // ancienne cell  
-            Cell newCell = destRow.getCell(j); // new cell   
+            Cell oldCell = srcRow.getCell(j);  
+            Cell newCell = destRow.getCell(j); 
             if (oldCell != null) {
                 if (newCell == null) {
                     newCell = destRow.createCell(j);
                 }
-                // copy chaque cell  
                 copyCell(oldCell, newCell, styleMap);
-                // copy les informations de fusion entre les cellules  
-                //System.out.println("row num: " + srcRow.getRowNum() + " , col: " + (short)oldCell.getColumnIndex());  
                 CellRangeAddress mergedRegion = getMergedRegion(srcSheet, srcRow.getRowNum(), (short) oldCell.getColumnIndex());
 
                 if (mergedRegion != null) {
-                    //System.out.println("Selected merged region: " + mergedRegion.toString());  
                     CellRangeAddress newMergedRegion = new CellRangeAddress(mergedRegion.getFirstRow() + deltaRows, mergedRegion.getLastRow() + deltaRows, mergedRegion.getFirstColumn(), mergedRegion.getLastColumn());
-                    //System.out.println("New merged region: " + newMergedRegion.toString());  
                     CellRangeAddressWrapper wrapper = new CellRangeAddressWrapper(newMergedRegion);
                     if (isNewMergedRegion(wrapper, mergedRegions)) {
                         mergedRegions.add(wrapper);
@@ -142,7 +133,6 @@ class CellRangeAddressWrapper implements Comparable < CellRangeAddressWrapper > 
     public CellRangeAddressWrapper(CellRangeAddress theRange) {
         this.range = theRange;
     }
-
 
     public int compareTo(CellRangeAddressWrapper o) {
         if (range.getFirstColumn() < o.range.getFirstColumn() &&

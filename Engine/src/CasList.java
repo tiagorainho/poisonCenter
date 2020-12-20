@@ -39,40 +39,25 @@ public class CasList {
 			catch(NullPointerException e) {
 				
 			}
-			
 		}
 	}
 	
 	public String getTraduction(String casNumber) {
-		for(Cas c: this.lst) {
-			if(c.getCasNumber().equals(casNumber)) {
-				return c.getDescriptionPT();
-			}
-		}
+		for(Cas c: this.lst) if(c.getCasNumber().equals(casNumber)) return c.getDescriptionPT();
 		return null;
 	}
 	
 	public void add(Cas cas) {
-		if(!this.contains(cas.getCasNumber())) {
-			this.lst.add(cas);
-		}
+		if(!this.contains(cas.getCasNumber())) this.lst.add(cas);
 	}
 	
 	public boolean contains(String casNumber) {
-		for(Cas c: this.lst) {
-			if(casNumber.equals(c.getCasNumber())) {
-				return true;
-			}
-		}
+		for(Cas c: this.lst) if(casNumber.equals(c.getCasNumber())) return true;
 		return false;
 	}
 	
-	public List<Cas> getAllCas() {
-		return this.lst;
-	}
+	public List<Cas> getAllCas() { return this.lst; }
 	
-	public int length() {
-		return this.lst.size();
-	}
+	public int length() { return this.lst.size(); }
 
 }

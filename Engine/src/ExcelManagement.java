@@ -20,7 +20,6 @@ import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -88,8 +87,7 @@ public class ExcelManagement {
 		Cell cell;
 		int startingPoint = 2;
 		CellStyle headerStyle = Styles.HeaderBoldGray(wb);
-		CellStyle warning = Styles.warning(wb);
-		
+		CellStyle warning = Styles.warning(wb);		
 		
 		sheet.setColumnWidth(0, 5000);
 		sheet.setColumnWidth(1, 5000);
@@ -187,6 +185,7 @@ public class ExcelManagement {
 		CellStyle markerStyle = Styles.marker(wb);
 		CellStyle tableHeader = Styles.TableHeader(wb);
 		CellStyle warning = Styles.warning(wb);
+		CellStyle success = Styles.success(wb);
 		CellStyle underline = Styles.Underlined(wb);
 		
 		// ficha header
@@ -328,7 +327,13 @@ public class ExcelManagement {
 		for(int i = 0; i < ingredients.size(); i++) {
 			
 			// preparing ingredient name
-			name = cas.getTraduction(ingredients.get(i).getCasNumber());
+			// name = cas.getTraduction(ingredients.get(i).getCasNumber());
+			name = ingredients.get(i).getName();
+			if(name.length() > 1) {
+				name = String.valueOf(name.charAt(0)) + name.substring(1).toLowerCase();
+			}
+			rows.get(i+2).createCell(3).setCellValue(name);
+			/*
 			if(name == null || name.length() == 0) {
 				cell = rows.get(i+2).createCell(3);
 				cell.setCellValue(ingredients.get(i).getName());
@@ -338,9 +343,9 @@ public class ExcelManagement {
 				if(name.length() > 1) {
 					name = String.valueOf(name.charAt(0)) + name.substring(1).toLowerCase();
 				}
-				rows.get(i+2).createCell(3).setCellValue(name);	
+				rows.get(i+2).createCell(3).setCellValue(name);
 			}
-			
+			*/
 			// preparing CAS Number
 			casNumber = ingredients.get(i).getCasNumber();
 			if(casNumber == null || casNumber.startsWith("(")) {
@@ -398,6 +403,20 @@ public class ExcelManagement {
 		rows.get(height + 2).createCell(1).setCellStyle(warning);
 		rows.get(height + 4).createCell(0).setCellValue("Data de atualização:");
 		rows.get(height + 4).createCell(1).setCellValue(formatter.format(date));
+		
+		// add UFI codes and EuPCS
+		rows.get(height + 6).createCell(0).setCellValue("UFI code calculated:");
+		rows.get(height + 6).createCell(1).setCellValue(product.getUFIcodeCalculated());
+		
+		rows.get(height + 7).createCell(0).setCellValue("UFI code notificated:");
+		Cell UFIcodeNotificatedCell = rows.get(height + 7).createCell(1);
+		UFIcodeNotificatedCell.setCellStyle(success);
+		UFIcodeNotificatedCell.setCellValue(product.getUFIcodeNotificated());
+		
+		rows.get(height + 8).createCell(0).setCellValue("EuPCS:");
+		Cell EuPCSCell = rows.get(height + 8).createCell(1);
+		EuPCSCell.setCellStyle(success);
+		EuPCSCell.setCellValue(product.getEuPCS());
 		
 		// populate cell with percentage sum
 		Double sum = (double) 0;

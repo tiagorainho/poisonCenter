@@ -13,7 +13,7 @@ public class Ingredient {
 	}
 	
 	public Ingredient() {}
-	
+
 	public String getCasNumber() {return this.casNumber;}
 	public String getProductCode() {return this.productCode;}
 	public String getName() {return this.description;}

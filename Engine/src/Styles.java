@@ -15,6 +15,13 @@ public class Styles {
 		return style;
 	}
 	
+	public static CellStyle success(Workbook wb) {
+		CellStyle style = wb.createCellStyle();
+		style.setFillForegroundColor(IndexedColors.LIME.getIndex());
+		style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		return style;
+	}
+	
 	public static CellStyle marker(Workbook wb) {
 		CellStyle style = wb.createCellStyle();
 		style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
